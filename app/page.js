@@ -185,13 +185,16 @@ export default function Home() {
                   </div>
 
                   <h3 className="mt-5 text-xl font-bold transition group-hover:text-blue-400">
-                    {item.name}
-                  </h3>
+  {item.name}
+</h3>
 
-                  <p className="mt-3 leading-7 text-gray-400">
-                    {item.description}
-                  </p>
+<p className="mt-2 text-lg font-bold text-green-400">
+  {item.price}
+</p>
 
+<p className="mt-3 leading-7 text-gray-400">
+  {item.description}
+</p>
                   <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/70 p-4">
                     <p className="text-xs font-bold uppercase tracking-wider text-blue-400">
                       Why we recommend it
