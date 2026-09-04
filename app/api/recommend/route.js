@@ -220,16 +220,55 @@ function detectCountryCurrency(query) {
   const lowerQuery = query.toLowerCase();
 
   for (const country of countryCurrencyMap) {
-    if (
-      country.keywords.some((keyword) =>
-        lowerQuery.includes(keyword)
-      )
-    ) {
+    if (country.keywords.some((keyword) => lowerQuery.includes(keyword))) {
       return country;
     }
   }
 
   return null;
+}
+
+// Wait helper for retry attempts
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Generate Gemini response with automatic retry
+async function generateWithRetry(model, prompt) {
+  const maxRetries = 3;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await model.generateContent(prompt);
+      return result;
+    } catch (error) {
+      const status = error?.status || error?.statusCode;
+
+      console.error(
+        `Gemini attempt ${attempt}/${maxRetries} failed with status: ${status}`
+      );
+
+      // If this is the final attempt, or the error is not temporary,
+      // stop retrying.
+      if (
+        attempt === maxRetries ||
+        (status !== 503 && status !== 429)
+      ) {
+        throw error;
+      }
+
+      // Exponential delay:
+      // Attempt 1 → wait 1 second
+      // Attempt 2 → wait 2 seconds
+      const delay = attempt * 1000;
+
+      console.log(
+        `Retrying Gemini request in ${delay / 1000} seconds...`
+      );
+
+      await sleep(delay);
+    }
+  }
 }
 
 export async function POST(request) {
@@ -418,7 +457,8 @@ Do not use code fences.
 }
 `;
 
-    const result = await model.generateContent(prompt);
+    // Generate response with automatic retry for 503/429 errors
+    const result = await generateWithRetry(model, prompt);
 
     const text = result.response.text().trim();
 
