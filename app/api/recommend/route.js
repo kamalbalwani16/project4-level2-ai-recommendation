@@ -1,493 +1,407 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const languageCurrencyMap = {
-  English: {
-    currency: "USD ($)",
-    display: "USD ($) + INR (₹)",
-  },
+  English: ["USD", "INR"],
 
-  Hindi: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
+  Hindi: ["INR"],
+  Hinglish: ["INR"],
+  Marathi: ["INR"],
+  Bengali: ["INR"],
+  Gujarati: ["INR"],
+  Punjabi: ["INR"],
+  Tamil: ["INR"],
+  Telugu: ["INR"],
+  Kannada: ["INR"],
+  Malayalam: ["INR"],
+  Urdu: ["INR"],
+  Odia: ["INR"],
+  Assamese: ["INR"],
 
-  Hinglish: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
+  Spanish: ["EUR", "INR"],
+  French: ["EUR", "INR"],
+  German: ["EUR", "INR"],
+  Portuguese: ["EUR", "INR"],
+  Italian: ["EUR", "INR"],
+  Dutch: ["EUR", "INR"],
 
-  Marathi: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
+  Russian: ["RUB", "INR"],
+  Ukrainian: ["UAH", "INR"],
+  Polish: ["PLN", "INR"],
+  Turkish: ["TRY", "INR"],
+  Arabic: ["AED", "INR"],
+  Persian: ["IRR", "INR"],
+  Hebrew: ["ILS", "INR"],
 
-  Bengali: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Gujarati: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Punjabi: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Tamil: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Telugu: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Kannada: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Malayalam: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Urdu: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Odia: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Assamese: {
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-
-  Spanish: {
-    currency: "EUR (€)",
-    display: "EUR (€) + INR (₹)",
-  },
-
-  French: {
-    currency: "EUR (€)",
-    display: "EUR (€) + INR (₹)",
-  },
-
-  German: {
-    currency: "EUR (€)",
-    display: "EUR (€) + INR (₹)",
-  },
-
-  Portuguese: {
-    currency: "EUR (€)",
-    display: "EUR (€) + INR (₹)",
-  },
-
-  Italian: {
-    currency: "EUR (€)",
-    display: "EUR (€) + INR (₹)",
-  },
-
-  Dutch: {
-    currency: "EUR (€)",
-    display: "EUR (€) + INR (₹)",
-  },
-
-  Russian: {
-    currency: "RUB (₽)",
-    display: "RUB (₽) + INR (₹)",
-  },
-
-  Ukrainian: {
-    currency: "UAH (₴)",
-    display: "UAH (₴) + INR (₹)",
-  },
-
-  Polish: {
-    currency: "PLN (zł)",
-    display: "PLN (zł) + INR (₹)",
-  },
-
-  Turkish: {
-    currency: "TRY (₺)",
-    display: "TRY (₺) + INR (₹)",
-  },
-
-  Arabic: {
-    currency: "AED (د.إ)",
-    display: "AED (د.إ) + INR (₹)",
-  },
-
-  Persian: {
-    currency: "IRR (﷼)",
-    display: "IRR (﷼) + INR (₹)",
-  },
-
-  Hebrew: {
-    currency: "ILS (₪)",
-    display: "ILS (₪) + INR (₹)",
-  },
-
-  "Chinese (Simplified)": {
-    currency: "CNY (¥)",
-    display: "CNY (¥) + INR (₹)",
-  },
-
-  "Chinese (Traditional)": {
-    currency: "TWD (NT$)",
-    display: "TWD (NT$) + INR (₹)",
-  },
-
-  Japanese: {
-    currency: "JPY (¥)",
-    display: "JPY (¥) + INR (₹)",
-  },
-
-  Korean: {
-    currency: "KRW (₩)",
-    display: "KRW (₩) + INR (₹)",
-  },
-
-  Vietnamese: {
-    currency: "VND (₫)",
-    display: "VND (₫) + INR (₹)",
-  },
-
-  Thai: {
-    currency: "THB (฿)",
-    display: "THB (฿) + INR (₹)",
-  },
-
-  Indonesian: {
-    currency: "IDR (Rp)",
-    display: "IDR (Rp) + INR (₹)",
-  },
-
-  Malay: {
-    currency: "MYR (RM)",
-    display: "MYR (RM) + INR (₹)",
-  },
+  "Chinese Simplified": ["CNY", "INR"],
+  "Chinese Traditional": ["TWD", "INR"],
+  Japanese: ["JPY", "INR"],
+  Korean: ["KRW", "INR"],
+  Vietnamese: ["VND", "INR"],
+  Thai: ["THB", "INR"],
+  Indonesian: ["IDR", "INR"],
+  Malay: ["MYR", "INR"],
 };
 
-// Explicit country/location currency has priority over language.
-const countryCurrencyMap = [
-  {
-    keywords: ["kuwait"],
-    currency: "KWD (د.ك)",
-    display: "KWD (د.ك) + INR (₹)",
-  },
-  {
-    keywords: ["uae", "united arab emirates", "dubai", "abu dhabi"],
-    currency: "AED (د.إ)",
-    display: "AED (د.إ) + INR (₹)",
-  },
-  {
-    keywords: ["saudi arabia", "saudi"],
-    currency: "SAR (﷼)",
-    display: "SAR (﷼) + INR (₹)",
-  },
-  {
-    keywords: ["qatar"],
-    currency: "QAR (﷼)",
-    display: "QAR (﷼) + INR (₹)",
-  },
-  {
-    keywords: ["bahrain"],
-    currency: "BHD (د.ب)",
-    display: "BHD (د.ب) + INR (₹)",
-  },
-  {
-    keywords: ["oman", "muscat"],
-    currency: "OMR (ر.ع.)",
-    display: "OMR (ر.ع.) + INR (₹)",
-  },
-  {
-    keywords: ["india", "indian"],
-    currency: "INR (₹)",
-    display: "INR (₹)",
-  },
-];
+const countryCurrencyMap = {
+  Kuwait: "KWD",
+  UAE: "AED",
+  Dubai: "AED",
+  "Abu Dhabi": "AED",
+  "Saudi Arabia": "SAR",
+  Saudi: "SAR",
+  Qatar: "QAR",
+  Bahrain: "BHD",
+  Oman: "OMR",
+  Muscat: "OMR",
+  India: "INR",
+  Indian: "INR",
+};
 
 function detectCountryCurrency(query) {
   const lowerQuery = query.toLowerCase();
 
-  for (const country of countryCurrencyMap) {
-    if (country.keywords.some((keyword) => lowerQuery.includes(keyword))) {
-      return country;
+  for (const [country, currency] of Object.entries(countryCurrencyMap)) {
+    if (lowerQuery.includes(country.toLowerCase())) {
+      return currency;
     }
   }
 
   return null;
 }
 
-// Wait helper for retry attempts
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// Generate Gemini response with automatic retry
-async function generateWithRetry(model, prompt) {
+/*
+  Try one model.
+  503 = temporary service overload
+  429 = rate limit
+*/
+async function generateWithRetry(genAI, modelName, prompt) {
   const maxRetries = 3;
+
+  const model = genAI.getGenerativeModel({
+    model: modelName,
+  });
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      console.log(
+        `Trying ${modelName} - attempt ${attempt}/${maxRetries}`
+      );
+
       const result = await model.generateContent(prompt);
+
+      console.log(`Success with ${modelName}`);
+
       return result;
     } catch (error) {
       const status = error?.status || error?.statusCode;
 
       console.error(
-        `Gemini attempt ${attempt}/${maxRetries} failed with status: ${status}`
+        `${modelName} attempt ${attempt}/${maxRetries} failed. Status: ${status}`
       );
 
-      // If this is the final attempt, or the error is not temporary,
-      // stop retrying.
-      if (
-        attempt === maxRetries ||
-        (status !== 503 && status !== 429)
-      ) {
+      // Only retry temporary overload/rate-limit errors.
+      if (status !== 503 && status !== 429) {
         throw error;
       }
 
-      // Exponential delay:
-      // Attempt 1 → wait 1 second
-      // Attempt 2 → wait 2 seconds
-      const delay = attempt * 1000;
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      // Increasing delay:
+      // attempt 1 -> 1.5 sec
+      // attempt 2 -> 3 sec
+      const delay = attempt * 1500;
 
       console.log(
-        `Retrying Gemini request in ${delay / 1000} seconds...`
+        `Retrying ${modelName} in ${delay / 1000} seconds...`
       );
 
       await sleep(delay);
     }
   }
+
+  throw new Error(`Failed with model ${modelName}`);
+}
+
+async function generateWithFallback(genAI, prompt) {
+  const models = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-3.6-flash",
+  ];
+
+  let lastError = null;
+
+  for (const modelName of models) {
+    try {
+      console.log(`\nStarting model: ${modelName}`);
+
+      const result = await generateWithRetry(
+        genAI,
+        modelName,
+        prompt
+      );
+
+      return result;
+    } catch (error) {
+      lastError = error;
+
+      const status = error?.status || error?.statusCode;
+
+      console.error(
+        `${modelName} completely failed. Status: ${status}`
+      );
+
+      console.log(
+        `Switching to next fallback model...`
+      );
+    }
+  }
+
+  throw lastError || new Error("All Gemini models failed.");
 }
 
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    const query = body.query?.trim();
-    const language = body.language || "English";
+    const query = body?.query?.trim();
+    const language = body?.language || "English";
 
     if (!query) {
       return Response.json(
         {
-          error: "Please enter what you are looking for.",
+          error: "Please enter a recommendation query.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     if (!process.env.GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY is missing.");
+
       return Response.json(
         {
-          error: "GEMINI_API_KEY is not configured.",
+          error: "Gemini API key is not configured.",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
-
-    const selectedLanguage =
-      languageCurrencyMap[language]
-        ? language
-        : "English";
-
-    // First check explicit country/location.
-    const detectedCountry = detectCountryCurrency(query);
-
-    // If country is not mentioned, use language default.
-    const currencyInfo =
-      detectedCountry || languageCurrencyMap[selectedLanguage];
 
     const genAI = new GoogleGenerativeAI(
       process.env.GEMINI_API_KEY
     );
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3.5-flash-lite",
-    });
+    const detectedCurrency = detectCountryCurrency(query);
+
+    const currencies =
+      languageCurrencyMap[language] || ["USD", "INR"];
+
+    const primaryCurrency =
+      detectedCurrency || currencies[0];
+
+    const secondaryCurrency =
+      detectedCurrency
+        ? "INR"
+        : currencies[1] || "INR";
 
     const prompt = `
 You are an expert multilingual AI recommendation assistant.
 
-USER REQUEST:
+User query:
 "${query}"
 
-OUTPUT LANGUAGE:
-${selectedLanguage}
+Selected language:
+${language}
 
-CURRENCY RULE:
-${currencyInfo.display}
+Primary currency:
+${primaryCurrency}
 
-IMPORTANT CURRENCY INSTRUCTIONS:
+Secondary currency:
+${secondaryCurrency}
 
-1. If the user explicitly mentions a currency, use that currency.
+Important currency and location rules:
 
-2. If the user explicitly mentions a country or location, use the currency of that country.
+1. If the user explicitly mentions a country, city, region, or currency,
+   prioritize that location/currency over the selected language.
 
-3. Country/location currency has priority over the language default.
+2. If the user mentions Kuwait, use KWD.
 
-4. If the request mentions Kuwait:
-   Use KWD (د.ك) + INR (₹).
+3. If the user mentions UAE, Dubai, or Abu Dhabi, use AED.
 
-5. If the request mentions UAE, United Arab Emirates, Dubai, or Abu Dhabi:
-   Use AED (د.إ) + INR (₹).
+4. If the user mentions Saudi Arabia or Saudi, use SAR.
 
-6. If the request mentions Saudi Arabia or Saudi:
-   Use SAR (﷼) + INR (₹).
+5. If the user mentions Qatar, use QAR.
 
-7. If the request mentions Qatar:
-   Use QAR (﷼) + INR (₹).
+6. If the user mentions Bahrain, use BHD.
 
-8. If the request mentions Bahrain:
-   Use BHD (د.ب) + INR (₹).
+7. If the user mentions Oman or Muscat, use OMR.
 
-9. If the request mentions Oman or Muscat:
-   Use OMR (ر.ع.) + INR (₹).
+8. If the user mentions India or Indian, use INR.
 
-10. If the request mentions India or Indian products:
-    Use INR (₹).
+9. Use realistic approximate prices for the requested location.
 
-11. English without an explicit country/currency:
-    Show USD ($) + INR (₹).
+10. If useful, provide the price in the local currency and INR.
 
-12. Indian languages such as Hindi, Hinglish, Marathi, Bengali,
-    Gujarati, Punjabi, Tamil, Telugu, Kannada, Malayalam, Urdu,
-    Odia and Assamese:
-    Use INR (₹).
+11. Never ignore an explicitly mentioned location or currency.
 
-13. Persian:
-    Default to IRR (﷼) + INR (₹), unless another country/currency
-    is explicitly mentioned.
+Language rules:
 
-14. Hebrew:
-    Default to ILS (₪) + INR (₹), unless another country/currency
-    is explicitly mentioned.
+- Answer in ${language}.
+- Recommendation names may remain in their original/common names.
+- Descriptions should be natural and understandable in ${language}.
+- Do not switch languages unnecessarily.
 
-15. Spanish, French, German, Portuguese, Italian and Dutch:
-    Default to EUR (€) + INR (₹), unless another country/location
-    is explicitly mentioned.
+Recommendation rules:
 
-16. Japanese:
-    Default to JPY (¥) + INR (₹).
-
-17. Korean:
-    Default to KRW (₩) + INR (₹).
-
-18. Chinese Simplified:
-    Default to CNY (¥) + INR (₹).
-
-19. Chinese Traditional:
-    Default to TWD (NT$) + INR (₹).
-
-20. Russian:
-    Default to RUB (₽) + INR (₹).
-
-21. Ukrainian:
-    Default to UAH (₴) + INR (₹).
-
-22. Polish:
-    Default to PLN (zł) + INR (₹).
-
-23. Turkish:
-    Default to TRY (₺) + INR (₹).
-
-24. Vietnamese:
-    Default to VND (₫) + INR (₹).
-
-25. Thai:
-    Default to THB (฿) + INR (₹).
-
-26. Indonesian:
-    Default to IDR (Rp) + INR (₹).
-
-27. Malay:
-    Default to MYR (RM) + INR (₹).
-
-PRICE CONVERSION:
-- Always use realistic approximate exchange rates.
-- Never simply copy the same numerical value between currencies.
-- Example:
-  $100 should NOT become ₹100.
-  It should be converted approximately to the current realistic INR value.
-- Prices can be approximate estimates.
-- If the user gives a budget, respect that budget.
-- If the user gives a budget in a specific currency, interpret it in
-  that currency first.
-
-LANGUAGE INSTRUCTIONS:
-- Write the descriptions and reasons in ${selectedLanguage}.
-- Keep well-known product, brand, movie, game and place names in their
-  original names when appropriate.
-- Do not unnecessarily translate proper names.
-
-RECOMMENDATION RULES:
+- Understand the user's intent carefully.
+- Recommend relevant and realistic options.
+- Consider location, budget, preferences, and context.
+- Avoid generic or unrelated recommendations.
 - Give exactly 5 recommendations.
-- Make each recommendation relevant to the user's request.
-- Avoid duplicate recommendations.
-- Give useful descriptions.
-- Explain why each item is recommended.
-- If the user asks for products, recommend realistic products.
-- If the user asks for movies, recommend realistic movies.
-- If the user asks for travel destinations, recommend realistic destinations.
 
-RETURN FORMAT:
+Output rules:
+
 Return ONLY valid JSON.
 Do not use markdown.
 Do not use code fences.
+Do not include any explanation outside JSON.
+
+The JSON must have exactly this structure:
 
 {
   "recommendations": [
     {
       "name": "Recommendation name",
-      "price": "price with correct currency/currencies",
-      "description": "Short description",
-      "reason": "Why this is recommended"
+      "description": "Short useful description",
+      "price": "Approximate price",
+      "category": "Category",
+      "location": "Relevant location"
+    },
+    {
+      "name": "Recommendation name",
+      "description": "Short useful description",
+      "price": "Approximate price",
+      "category": "Category",
+      "location": "Relevant location"
+    },
+    {
+      "name": "Recommendation name",
+      "description": "Short useful description",
+      "price": "Approximate price",
+      "category": "Category",
+      "location": "Relevant location"
+    },
+    {
+      "name": "Recommendation name",
+      "description": "Short useful description",
+      "price": "Approximate price",
+      "category": "Category",
+      "location": "Relevant location"
+    },
+    {
+      "name": "Recommendation name",
+      "description": "Short useful description",
+      "price": "Approximate price",
+      "category": "Category",
+      "location": "Relevant location"
     }
   ]
 }
+
+Make sure there are exactly 5 recommendation objects.
 `;
 
-    // Generate response with automatic retry for 503/429 errors
-    const result = await generateWithRetry(model, prompt);
+    /*
+      MODEL PRIORITY:
 
-    const text = result.response.text().trim();
+      1. gemini-3.5-flash-lite
+      2. gemini-3.1-flash-lite
+      3. gemini-3.6-flash
 
-    // Remove markdown code fences if Gemini adds them.
-    const cleanedText = text
+      If 3.5 works -> stop.
+      If 3.5 gives repeated 503/429 -> try 3.1.
+      If 3.1 also fails -> try 3.6.
+    */
+    const result = await generateWithFallback(
+      genAI,
+      prompt
+    );
+
+    let text = result.response.text().trim();
+
+    // Remove accidental markdown code fences.
+    text = text
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
       .replace(/\s*```$/i, "")
       .trim();
 
-    const data = JSON.parse(cleanedText);
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error(
+        "Gemini returned invalid JSON:",
+        text
+      );
+
+      return Response.json(
+        {
+          error:
+            "Gemini returned an invalid recommendation response. Please try again.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
 
     if (
-      !data.recommendations ||
+      !data ||
       !Array.isArray(data.recommendations)
     ) {
-      throw new Error("Invalid recommendation response.");
+      console.error(
+        "Invalid recommendation structure:",
+        data
+      );
+
+      return Response.json(
+        {
+          error:
+            "Invalid recommendation response. Please try again.",
+        },
+        {
+          status: 500,
+        }
+      );
     }
 
     return Response.json(data);
   } catch (error) {
-    console.error("Recommendation API error:", error);
+    console.error(
+      "Recommendation API error:",
+      error
+    );
 
     return Response.json(
       {
         error:
           "Failed to generate recommendations. Please try again.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
